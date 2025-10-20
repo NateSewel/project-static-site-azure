@@ -1,31 +1,45 @@
 #!/bin/bash
 # ======================================================
-# Azure Variables Loader (works for both local & CI/CD)
+# Azure Variables Loader (local & CI/CD compatible)
 # ======================================================
 
-# Load environment variables from .env
+# List of required variables
+REQUIRED_VARS=(
+  "AZ_SUBSCRIPTION_ID"
+  "AZ_LOCATION"
+  "RESOURCE_GROUP"
+  "VNET_NAME"
+  "SUBNET_NAME"
+  "NSG_NAME"
+  "VM_NAME"
+  "PUBLIC_IP_NAME"
+  "NIC_NAME"
+  "VM_SIZE"
+  "VM_IMAGE"
+  "ADMIN_USERNAME"
+  "SSH_KEY_PATH"
+)
+
+# Load .env file if it exists (local development)
 if [ -f "../.env" ]; then
   echo "📦 Loading environment variables from .env..."
   set -a
   source ../.env
   set +a
 else
-  echo "⚙️ No .env file found. Please create one."
-  exit 1
+  echo "⚙️ No .env file found. Relying on environment variables..."
 fi
 
-# Validate required variables safely
-REQUIRED_VARS=("AZ_SUBSCRIPTION_ID" "AZ_LOCATION" "RESOURCE_GROUP")
-
+# Validate required variables
 for var in "${REQUIRED_VARS[@]}"; do
   if [ -z "${!var-}" ]; then
-    echo "❌ ERROR: $var not set. Please export it or define it in .env"
+    echo "❌ ERROR: $var is not set! Please define it as an environment variable or in .env"
     exit 1
   fi
 done
 
-# Show summary
+# Display loaded variables (safe for debugging)
 echo "✅ Variables loaded successfully:"
-echo "Subscription: ${AZ_SUBSCRIPTION_ID}"
-echo "Region: ${AZ_LOCATION}"
-echo "Resource Group: ${RESOURCE_GROUP}"
+for var in "${REQUIRED_VARS[@]}"; do
+  echo "$var = ${!var}"
+done
