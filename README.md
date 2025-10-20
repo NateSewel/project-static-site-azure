@@ -96,36 +96,6 @@ Architecture Components
 | **NGINX Web Server**             | Serves the static HTML website                        |
 | **GitHub Actions**               | Automates the provisioning and deployment process     |
 
-⚙️ Project Folder Structure
-
-├── infra/
-│ ├── create_infra.sh # Automates Azure resource creation
-│ ├── destroy_infra.sh # Deletes all resources to avoid costs
-│ └── config_nsg.sh # Configures inbound/outbound NSG rules
-│
-├── vm/
-│ ├── deploy_vm.sh # Creates Ubuntu VM via CLI
-│ ├── install_nginx.sh # Installs and configures NGINX
-│ └── deploy_site.sh # Copies website files to /var/www/html
-│
-├── site/
-│ ├── index.html # Main homepage for the static website
-│ ├── style.css # Optional stylesheet
-│ └── assets/ # Images, icons, etc.
-│
-├── .github/
-│ └── workflows/
-│ └── deploy.yml # GitHub Actions CI/CD workflow
-│
-├── screenshots/
-│ ├── step1_resource_group.png
-│ ├── step2_vnet_nsg.png
-│ ├── step3_vm_overview.png
-│ ├── step4_nginx_running.png
-│ ├── step5_live_site.png
-│ └── ...
-│
-└── README.md # Project documentation (this file)
 
 💻 Automation Workflow
 
