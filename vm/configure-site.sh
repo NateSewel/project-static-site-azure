@@ -1,10 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
-apt-get update
-apt-get install -y nginx unzip
+
+# Install dependencies
+apt-get update -y
+apt-get install -y nginx git unzip
+
+# Setup web directory
 mkdir -p /var/www/html
-# scp or wget a zip of your site to /tmp/site.zip then:
-# unzip -o /tmp/site.zip -d /var/www/html
+rm -rf /var/www/html/*
+
+# Clone repo (manual execution)
+git clone --depth 1 https://github.com/NateSewel/project-static-site-azure.git /tmp/site-repo
+cp -r /tmp/site-repo/* /var/www/html/
 chown -R www-data:www-data /var/www/html
+rm -rf /tmp/site-repo
+
+# Enable and restart nginx
 systemctl enable nginx
 systemctl restart nginx
+
+echo "✅ Site setup completed."

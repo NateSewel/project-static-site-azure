@@ -7,7 +7,6 @@
 if [ -f "../.env" ]; then
   echo "📦 Loading environment variables from .env..."
   set -a
-  # shellcheck disable=SC1091
   source ../.env
   set +a
 else
@@ -15,18 +14,17 @@ else
   exit 1
 fi
 
-# Validate required variables safely (even with 'set -u')
+# Validate required variables safely
 REQUIRED_VARS=("AZ_SUBSCRIPTION_ID" "AZ_LOCATION" "RESOURCE_GROUP")
 
 for var in "${REQUIRED_VARS[@]}"; do
-  # Use indirect expansion safely under 'set -u'
   if [ -z "${!var-}" ]; then
     echo "❌ ERROR: $var not set. Please export it or define it in .env"
     exit 1
   fi
 done
 
-# Show summary (for visibility)
+# Show summary
 echo "✅ Variables loaded successfully:"
 echo "Subscription: ${AZ_SUBSCRIPTION_ID}"
 echo "Region: ${AZ_LOCATION}"

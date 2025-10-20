@@ -5,29 +5,55 @@ packages:
   - nginx
   - unzip
   - git
+  - curl
 
 runcmd:
+  # Create web root
   - mkdir -p /var/www/html
   - rm -rf /var/www/html/*
 
-  # Use GitHub API
+  # Download site archive from GitHub and extract
   - |
-    echo "Downloading site archive from GitHub..."
-    curl -L -o /tmp/site.zip \
-      "https://api.github.com/repos/NateSewel/project-static-site-azure/zipball/main"
+    echo "📥 Downloading site archive from GitHub..."
+    curl -4 -L -o /tmp/site.zip "https://api.github.com/repos/NateSewel/project-static-site-azure/zipball/main"
 
     if [ -f /tmp/site.zip ]; then
-      echo "Extracting site files..."
-      unzip -o /tmp/site.zip -d /var/www/html || true
-      # Move extracted folder contents up (GitHub zips create a subfolder)
-      mv /var/www/html/NateSewel-project-static-site-azure-*/* /var/www/html/ || true
-      rm -rf /var/www/html/NateSewel-project-static-site-azure-* || true
+      echo "📂 Extracting site files..."
+      unzip -o /tmp/site.zip -d /tmp/site_content || true
+      # GitHub zips create a subfolder; move contents to web root
+      mv /tmp/site_content/NateSewel-project-static-site-azure-*/* /var/www/html/ || true
+      rm -rf /tmp/site_content /tmp/site.zip
     else
       echo "⚠️ Failed to download site.zip from GitHub."
     fi
 
+  # Set ownership and permissions
   - chown -R www-data:www-data /var/www/html
+  - chmod -R 755 /var/www/html
+
+  # Setup Nginx for static site
+  - |
+    echo "🖥️ Configuring Nginx..."
+    cat > /etc/nginx/sites-available/default <<'EOF'
+    server {
+        listen 80 default_server;
+        listen [::]:80 default_server;
+
+        root /var/www/html;
+        index index.html index.htm;
+
+        server_name _;
+
+        location / {
+            try_files $uri $uri/ =404;
+        }
+
+        error_log /var/log/nginx/error.log;
+        access_log /var/log/nginx/access.log;
+    }
+    EOF
+
+  # Enable and start Nginx
   - systemctl enable nginx
   - systemctl restart nginx
-  - echo "✅ Cloud-init completed successfully"
-  - echo "Your site should now be available on port 80."
+  - echo "✅ Cloud-init completed. Website is ready on port 80."
