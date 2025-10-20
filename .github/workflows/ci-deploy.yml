@@ -12,6 +12,21 @@ jobs:
       id-token: write
       contents: read
 
+    env:
+      AZ_SUBSCRIPTION_ID: ${{ secrets.AZ_SUBSCRIPTION_ID }}
+      AZ_LOCATION: uksouth
+      RESOURCE_GROUP: rg-blizzy-static
+      VNET_NAME: vnet-blizzy
+      SUBNET_NAME: snet-web
+      NSG_NAME: nsg-web
+      VM_NAME: vm-blizzy-web
+      PUBLIC_IP_NAME: pip-blizzy
+      NIC_NAME: nic-blizzy
+      VM_SIZE: Standard_B1s
+      VM_IMAGE: UbuntuLTS
+      ADMIN_USERNAME: azureuser
+      SSH_KEY_PATH: ~/.ssh/id_rsa.pub
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
