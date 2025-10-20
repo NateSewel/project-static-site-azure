@@ -28,10 +28,10 @@ jobs:
 
       # 2️⃣ Login to Azure using service principal credentials
       - name: Azure Login
-        uses: azure/login@v2
+        uses: Azure/login@v2.3.0
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-          enable-AzPSSession: false # optional, avoid PowerShell session if not needed
+          enable-AzPSSession: true # optional, avoid PowerShell session if not needed
 
       # 3️⃣ Set subscription explicitly
       - name: Set Azure Subscription
