@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Blizzy Labs — Static Showcase</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="stylesheet" href="/assets/style.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <h1>Blizzy Labs — Static Website Demo</h1>
+      <p>Deployed to Azure via Azure CLI + Cloud-Init + GitHub Actions</p>
+    </header>
+
+    <main class="content">
+      <section>
+        <h2>Project 5 — Group 5</h2>
+        <p>
+          This static site is unique content for the assignment. Timestamp:
+          <strong id="build-ts">BUILD_TIMESTAMP</strong>
+        </p>
+        <p>
+          We serve this site with NGINX on an Ubuntu VM created with an
+          automated script.
+        </p>
+      </section>
+
+      <section>
+        <h3>About</h3>
+        <p>Made by Group 5 — automation demo for cloud infra and CI/CD.</p>
+        <a href="/about.html">More →</a>
+      </section>
+    </main>
+
+    <footer>
+      <small>© Blizzy Labs — Unique static content for Project 5</small>
+    </footer>
+
+    <script>
+      document.getElementById("build-ts").textContent =
+        new Date().toISOString();
+    </script>
+  </body>
+</html>

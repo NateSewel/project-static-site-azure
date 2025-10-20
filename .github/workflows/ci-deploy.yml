@@ -1,0 +1,62 @@
+name: Deploy to Azure (infra + site)
+
+on:
+  push:
+    branches: [main, master]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python (needed by az sometimes)
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Install Azure CLI (if missing)
+        run: |
+          if ! command -v az >/dev/null 2>&1; then
+            curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+          fi
+          az version
+
+      - name: Configure subscription
+        run: |
+          az account set --subscription "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+
+      - name: Make infra script executable
+        run: |
+          chmod +x infra/infra.sh
+          chmod +x infra/destroy.sh
+
+      - name: Create SSH key (temporary) if none provided
+        env:
+          SSH_KEY_PATH: ${{ runner_temp }}/id_rsa
+        run: |
+          if [ ! -f "${SSH_KEY_PATH}.pub" ]; then
+            ssh-keygen -t rsa -b 2048 -N "" -f "${SSH_KEY_PATH}"
+            echo "Generated temp SSH key"
+          fi
+          # Print public key to be used by az
+          echo "PUBLIC_KEY_CONTENT<<EOF" >> $GITHUB_ENV
+          cat "${SSH_KEY_PATH}.pub" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Prepare variables file (inject SSH key)
+        run: |
+          sed -i "s|SSH_KEY_PATH=.*|SSH_KEY_PATH=\"${{ runner_temp }}/id_rsa.pub\"|" infra/variables.sh
+          # optionally edit other variables here, e.g. location
+          sed -i "s|AZ_LOCATION=.*|AZ_LOCATION=\"eastus\"|" infra/variables.sh
+          cat infra/variables.sh
+
+      - name: Run infra script
+        run: |
+          ./infra/infra.sh
