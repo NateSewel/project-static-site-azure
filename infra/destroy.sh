@@ -1,7 +1,7 @@
 #!/bin/bash
 # ============================================================
-# Azure Infrastructure Teardown Script with Verification
-# Deletes all resources in a Resource Group and waits for completion
+# Azure Infrastructure Teardown Script
+# Safely Deletes All Resources for the Static Website Project
 # ============================================================
 
 # Load environment variables from .env if present
@@ -11,7 +11,7 @@ if [ -f "../.env" ]; then
   source ../.env
   set +a
 else
-  echo "⚠️ No .env file found — ensure variables are exported manually!"
+  echo "⚠️  No .env file found. Relying on exported environment variables..."
 fi
 
 # Validate required environment variables
@@ -30,7 +30,7 @@ echo "Resource Group: $RESOURCE_GROUP"
 echo "----------------------------------------------"
 
 # Confirm deletion
-read -p "⚠️ Are you sure you want to DELETE all resources in $RESOURCE_GROUP? (yes/no): " CONFIRM
+read -p "⚠️  Are you sure you want to DELETE all resources in $RESOURCE_GROUP? (yes/no): " CONFIRM
 if [[ "$CONFIRM" != "yes" ]]; then
   echo "❌ Deletion aborted."
   exit 0
@@ -44,13 +44,13 @@ echo "🧹 Deleting Resource Group: $RESOURCE_GROUP ..."
 az group delete \
   --name "$RESOURCE_GROUP" \
   --yes \
-  --verbose
+  --no-wait
 
-# Poll to verify deletion
-echo "⏳ Waiting for Resource Group to be fully removed..."
-while az group exists --name "$RESOURCE_GROUP" >/dev/null 2>&1; do
-  echo "   Resource Group still exists, waiting 10 seconds..."
-  sleep 10
+# Wait until deletion completes
+echo "⏳ Waiting for Resource Group deletion to complete..."
+while az group exists --name "$RESOURCE_GROUP" | grep true > /dev/null; do
+    echo "⏱  Resource Group still exists, waiting 15s..."
+    sleep 15
 done
 
-echo "✅ Resource Group $RESOURCE_GROUP and all resources have been deleted successfully!"
+echo "✅ Resource Group $RESOURCE_GROUP and all resources have been successfully deleted."

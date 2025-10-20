@@ -43,7 +43,15 @@ az network public-ip create --resource-group "${RESOURCE_GROUP}" --name "${PUBLI
 echo "[6/7] Creating NIC ${NIC_NAME}"
 az network nic create --resource-group "${RESOURCE_GROUP}" --name "${NIC_NAME}" --vnet-name "${VNET_NAME}" --subnet "${SUBNET_NAME}" --network-security-group "${NSG_NAME}" --public-ip-address "${PUBLIC_IP_NAME}" --output none
 
-echo "[7/7] Creating VM ${VM_NAME} (cloud-init handles website)"
+# Before VM creation, ensure SSH key path exists
+if [ ! -f "${SSH_KEY_PATH}" ]; then
+  echo "SSH public key not found at ${SSH_KEY_PATH}. Using dynamically generated key."
+  SSH_KEY_PATH="$HOME/.ssh/id_rsa.pub"
+fi
+
+
+# Create VM
+echo "[7/7] Creating VM ${VM_NAME} (cloud-init handles website setup)"
 az vm create \
   --resource-group "${RESOURCE_GROUP}" \
   --name "${VM_NAME}" \
@@ -52,8 +60,19 @@ az vm create \
   --admin-username "${ADMIN_USERNAME}" \
   --ssh-key-values "${SSH_KEY_PATH}" \
   --nics "${NIC_NAME}" \
-  --custom-data "${SCRIPT_DIR}/cloud-init.yml" \
-  --output json
+  --custom-data "../vm/cloud-init.yml" \
+  --output json > /tmp/vm_create_out.json
+# echo "[7/7] Creating VM ${VM_NAME} (cloud-init handles website)"
+# az vm create \
+#   --resource-group "${RESOURCE_GROUP}" \
+#   --name "${VM_NAME}" \
+#   --size "${VM_SIZE}" \
+#   --image "${VM_IMAGE}" \
+#   --admin-username "${ADMIN_USERNAME}" \
+#   --ssh-key-values "${SSH_KEY_PATH}" \
+#   --nics "${NIC_NAME}" \
+#   --custom-data "${SCRIPT_DIR}/cloud-init.yml" \
+#   --output json
 
 # Get public IP
 PUBLIC_IP=$(az network public-ip show --resource-group "${RESOURCE_GROUP}" --name "${PUBLIC_IP_NAME}" --query ipAddress -o tsv)
