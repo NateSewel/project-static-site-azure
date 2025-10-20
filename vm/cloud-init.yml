@@ -9,7 +9,7 @@ runcmd:
   - mkdir -p /var/www/html
   - rm -rf /var/www/html/*
 
-  # Clone the repo directly (avoid raw.githubusercontent issues)
+  # Clone your repository directly into the web root
   - |
     echo "Cloning website repository..."
     git clone --depth 1 -b main https://github.com/NateSewel/project-static-site-azure.git /var/www/html || true
@@ -19,3 +19,4 @@ runcmd:
   - systemctl enable nginx
   - systemctl restart nginx
   - echo "✅ Cloud-init completed successfully"
+  - echo "Your site should now be live on port 80."

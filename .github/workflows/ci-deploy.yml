@@ -5,38 +5,29 @@ on:
     branches:
       - main
 
-permissions:
-  id-token: write # Required for OIDC login
-  contents: read # Required to checkout repo
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
-      # 1️⃣ Checkout your repo
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2️⃣ Log in to Azure using OIDC
-      - name: Azure Login via OIDC
+      - name: Azure login using Service Principal
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }} # Service Principal Client ID
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }} # Tenant ID
-          subscription-id: ${{ secrets.AZ_SUBSCRIPTION_ID }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # 3️⃣ Verify login (optional)
-      - name: Show Azure account
-        run: az account show
+      - name: Set subscription context
+        run: az account set --subscription ${{ secrets.AZ_SUBSCRIPTION_ID }}
 
-      # 4️⃣ Run infrastructure setup script
-      - name: Deploy Infrastructure & Website
+      - name: Run infrastructure setup
         run: bash infra/infra.sh
 
-      # 5️⃣ Verify VM and Public IP
-      - name: Verify Deployment
+      - name: Verify deployment
         run: |
-          echo "✅ Deployment complete."
-          az vm list -d -o table
-          az network public-ip show --resource-group rg-blizzy-static --name pip-blizzy -o table
+          echo "✅ Infrastructure deployed successfully"
+          az vm list -o table
