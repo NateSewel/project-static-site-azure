@@ -21,36 +21,67 @@ Implement a GitHub Actions workflow for continuous deployment.
 
 Provide complete documentation, screenshots, and presentation materials.
 
-🏗️ Cloud Architecture
+### Architecture Diagram
 
-                 +-------------------------+
-                 |    GitHub Repository     |
-                 |  (Source + CI Pipeline)  |
-                 +------------+-------------+
-                              |
-                              | GitHub Actions (Azure CLI)
-                              v
+```
+ GitHub Repo (Scripts + CI/CD)
+          │
+          ▼
+   GitHub Actions Workflow
+          │
+          ▼
+ ┌──────────────────────────────┐
+ │     Azure Cloud Platform     │
+ │ ┌──────────────────────────┐ │
+ │ │  Resource Group (RG)     │ │
+ │ │ ┌──────────────────────┐ │ │
+ │ │ │  Virtual Network     │ │ │
+ │ │ │   ├─ Subnet          │ │ │
+ │ │ │   ├─ NSG (Ports 22/80/443) │
+ │ │ │   └─ Linux VM (NGINX) │ │ │
+ │ │ └──────────────────────┘ │ │
+ │ └──────────────────────────┘ │
+ └──────────────────────────────┘
+          │
+          ▼
+     🌍 Public IP (Live Website)
+```
 
-+---------------------------------------------------------+
-| Microsoft Azure |
-| |
-| +---------------- Resource Group -----------------+ |
-| | | |
-| | +-----------+ +-------------+ | |
-| | | VNet |---| Subnet |--- NIC -------+---|
-| | +-----------+ +-------------+ | |
-| | | Public IP |
-| | | | |
-| | | +--------------------+
-| | | | Linux VM (NGINX) |
-| | | | /var/www/html |
-| | | | Hosts Static Site |
-| | | +--------------------+
-| | |  
-| | HTTP (Port 80)  
-| +---------------------------------------------------------+
-|
-+--------------------------------------------------------------+
+---
+
+## ⚙️ Project Structure
+
+```
+├── infra/
+│   ├── create_infra.sh
+│   ├── destroy_infra.sh
+│   └── config_nsg.sh
+│
+├── vm/
+│   ├── deploy_vm.sh
+│   ├── install_nginx.sh
+│   └── deploy_site.sh
+│
+├── site/
+│   ├── index.html
+│   ├── style.css
+│   └── assets/
+│
+├── .github/
+│   └── workflows/
+│       └── deploy.yml
+│
+├── screenshots/
+│   ├── step1_resource_group.png
+│   ├── step2_vnet_nsg.png
+│   ├── step3_vm_overview.png
+│   ├── step4_nginx_running.png
+│   ├── step5_live_site.png
+│
+└── README.md
+```
+
+---
 
 🧱 Architecture Overview
 Architecture Components
@@ -267,7 +298,6 @@ Tools and Technologies Used
 | NSG rule misconfiguration                   | Re-applied rule allowing inbound port 80                               |
 | File permissions on NGINX root directory    | Updated ownership with `sudo chown -R www-data:www-data /var/www/html` |
 | Pipeline timing errors                      | Added step delays and proper dependencies in workflow                  |
-
 
 🧾 Deliverables
 
