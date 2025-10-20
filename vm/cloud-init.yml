@@ -4,29 +4,20 @@ package_upgrade: true
 packages:
   - nginx
   - git
-  - unzip
 
 runcmd:
-  - echo "📂 Preparing web directory..."
   - mkdir -p /var/www/html
   - rm -rf /var/www/html/*
 
-  # Clone your GitHub repository directly
+  # Clone the repo directly
   - |
-    echo "🔄 Cloning GitHub repository..."
-    if [ -d /var/www/html/.git ]; then
-      echo "Repository already exists, pulling latest changes..."
-      git -C /var/www/html pull
-    else
-      git clone https://github.com/NateSewel/project-static-site-azure.git /var/www/html
-    fi
+    echo "Cloning website repo..."
+    git clone --depth 1 -b main https://github.com/NateSewel/project-static-site-azure.git /var/www/html || true
+    # Optional: remove .git folder
+    rm -rf /var/www/html/.git
 
-  - echo "🔧 Setting permissions..."
   - chown -R www-data:www-data /var/www/html
-
-  - echo "🚀 Enabling and restarting nginx..."
   - systemctl enable nginx
   - systemctl restart nginx
-
   - echo "✅ Cloud-init completed successfully"
-  - echo "Your site should now be available on port 80."
+  - echo "Your site should now be live on port 80."
