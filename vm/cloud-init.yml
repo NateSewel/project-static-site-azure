@@ -9,17 +9,13 @@ runcmd:
   - mkdir -p /var/www/html
   - rm -rf /var/www/html/*
 
-  # Clone website repo with retries
+  # Clone the repo directly (avoid raw.githubusercontent issues)
   - |
-    echo "Cloning website repo from GitHub..."
-    for i in {1..5}; do
-      git clone --depth 1 -b main https://github.com/NateSewel/project-static-site-azure.git /var/www/html && break || sleep 10
-    done
-    # Remove .git folder
+    echo "Cloning website repository..."
+    git clone --depth 1 -b main https://github.com/NateSewel/project-static-site-azure.git /var/www/html || true
     rm -rf /var/www/html/.git
 
   - chown -R www-data:www-data /var/www/html
   - systemctl enable nginx
   - systemctl restart nginx
   - echo "✅ Cloud-init completed successfully"
-  - echo "Your site should now be live on port 80."

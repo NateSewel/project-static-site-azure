@@ -5,51 +5,38 @@ on:
     branches:
       - main
 
-env:
-  AZURE_LOCATION: uksouth
-  RESOURCE_GROUP: rg-blizzy-static
-  VNET_NAME: vnet-blizzy
-  SUBNET_NAME: snet-web
-  NSG_NAME: nsg-web
-  VM_NAME: vm-blizzy-web
-  PUBLIC_IP_NAME: pip-blizzy
-  NIC_NAME: nic-blizzy
-  VM_SIZE: Standard_B1s
-  AZ_SUBSCRIPTION_ID: ${{ secrets.AZ_SUBSCRIPTION_ID }}
+permissions:
+  id-token: write # Required for OIDC login
+  contents: read # Required to checkout repo
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout the repo
+      # 1️⃣ Checkout your repo
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2️⃣ Login to Azure using service principal credentials
-      - name: Azure Login
-        uses: Azure/login@v2.3.0
+      # 2️⃣ Log in to Azure using OIDC
+      - name: Azure Login via OIDC
+        uses: azure/login@v2
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-          enable-AzPSSession: true # optional, avoid PowerShell session if not needed
+          client-id: ${{ secrets.AZURE_CLIENT_ID }} # Service Principal Client ID
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }} # Tenant ID
+          subscription-id: ${{ secrets.AZ_SUBSCRIPTION_ID }}
 
-      # 3️⃣ Set subscription explicitly
-      - name: Set Azure Subscription
-        run: az account set --subscription $AZ_SUBSCRIPTION_ID
+      # 3️⃣ Verify login (optional)
+      - name: Show Azure account
+        run: az account show
 
-      # 4️⃣ Run infrastructure script
-      - name: Deploy Infrastructure
+      # 4️⃣ Run infrastructure setup script
+      - name: Deploy Infrastructure & Website
+        run: bash infra/infra.sh
+
+      # 5️⃣ Verify VM and Public IP
+      - name: Verify Deployment
         run: |
-          chmod +x infra/infra.sh
-          bash infra/infra.sh
-
-      # 5️⃣ Verify deployment
-      - name: Verify VM Deployment
-        run: |
-          VM_IP=$(az network public-ip show \
-            --resource-group $RESOURCE_GROUP \
-            --name $PUBLIC_IP_NAME \
-            --query ipAddress -o tsv)
-          echo "✅ Infrastructure deployed successfully."
-          echo "VM Public IP: $VM_IP"
-          echo "Website URL: http://$VM_IP/"
+          echo "✅ Deployment complete."
+          az vm list -d -o table
+          az network public-ip show --resource-group rg-blizzy-static --name pip-blizzy -o table
