@@ -1,0 +1,15 @@
+# Ignore environment and sensitive files
+.env
+*.env
+*.secret
+credentials.json
+*.pem
+
+# Ignore system & IDE files
+.vscode/
+__pycache__/
+node_modules/
+*.log
+*.tmp
+*.swp
+.DS_Store

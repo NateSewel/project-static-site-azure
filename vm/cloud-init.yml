@@ -3,22 +3,31 @@ package_update: true
 package_upgrade: true
 packages:
   - nginx
+  - unzip
   - git
+
 runcmd:
   - mkdir -p /var/www/html
   - rm -rf /var/www/html/*
-  # Replace <RAW_GITHUB_URL> with the raw link to your site.zip or files (see README)
+
+  # Use GitHub API
   - |
-    if [ -n "${SITE_GIT_RAW_URL:-}" ]; then
-      # If SITE_GIT_RAW_URL is provided as an instance metadata/custom-data var, use curl
-      curl -fsSL "${SITE_GIT_RAW_URL}" -o /tmp/site.zip || true
-      if [ -f /tmp/site.zip ]; then
-        apt-get install -y unzip
-        unzip -o /tmp/site.zip -d /var/www/html || true
-      fi
+    echo "Downloading site archive from GitHub..."
+    curl -L -o /tmp/site.zip \
+      "https://api.github.com/repos/NateSewel/project-static-site-azure/zipball/main"
+
+    if [ -f /tmp/site.zip ]; then
+      echo "Extracting site files..."
+      unzip -o /tmp/site.zip -d /var/www/html || true
+      # Move extracted folder contents up (GitHub zips create a subfolder)
+      mv /var/www/html/NateSewel-project-static-site-azure-*/* /var/www/html/ || true
+      rm -rf /var/www/html/NateSewel-project-static-site-azure-* || true
+    else
+      echo "⚠️ Failed to download site.zip from GitHub."
     fi
+
   - chown -R www-data:www-data /var/www/html
   - systemctl enable nginx
   - systemctl restart nginx
-  - echo "Cloud-init completed"
-  - echo "Your site should be available shortly."
+  - echo "✅ Cloud-init completed successfully"
+  - echo "Your site should now be available on port 80."

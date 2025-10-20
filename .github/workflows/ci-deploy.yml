@@ -1,62 +1,42 @@
-name: Deploy to Azure (infra + site)
+name: Azure Static Website Deployment
 
 on:
   push:
-    branches: [main, master]
+    branches:
+      - main
+
+env:
+  AZURE_LOCATION: uksouth
+  RESOURCE_GROUP: rg-blizzy-static
+  VNET_NAME: vnet-blizzy
+  SUBNET_NAME: snet-web
+  NSG_NAME: nsg-web
+  VM_NAME: vm-blizzy-web
+  PUBLIC_IP_NAME: pip-blizzy
+  NIC_NAME: nic-blizzy
+  VM_SIZE: Standard_B1s
+  AZ_SUBSCRIPTION_ID: ${{ secrets.AZ_SUBSCRIPTION_ID }}
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python (needed by az sometimes)
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.x
-
-      - name: Login to Azure
-        uses: azure/login@v1
+      - name: Log in to Azure
+        uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Install Azure CLI (if missing)
-        run: |
-          if ! command -v az >/dev/null 2>&1; then
-            curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-          fi
-          az version
+      - name: Set Subscription Context
+        run: az account set --subscription $AZ_SUBSCRIPTION_ID
 
-      - name: Configure subscription
-        run: |
-          az account set --subscription "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+      - name: Run Infrastructure Setup
+        run: bash infra/create_infra.sh
 
-      - name: Make infra script executable
+      - name: Verify Deployment
         run: |
-          chmod +x infra/infra.sh
-          chmod +x infra/destroy.sh
-
-      - name: Create SSH key (temporary) if none provided
-        env:
-          SSH_KEY_PATH: ${{ runner_temp }}/id_rsa
-        run: |
-          if [ ! -f "${SSH_KEY_PATH}.pub" ]; then
-            ssh-keygen -t rsa -b 2048 -N "" -f "${SSH_KEY_PATH}"
-            echo "Generated temp SSH key"
-          fi
-          # Print public key to be used by az
-          echo "PUBLIC_KEY_CONTENT<<EOF" >> $GITHUB_ENV
-          cat "${SSH_KEY_PATH}.pub" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
-      - name: Prepare variables file (inject SSH key)
-        run: |
-          sed -i "s|SSH_KEY_PATH=.*|SSH_KEY_PATH=\"${{ runner_temp }}/id_rsa.pub\"|" infra/variables.sh
-          # optionally edit other variables here, e.g. location
-          sed -i "s|AZ_LOCATION=.*|AZ_LOCATION=\"eastus\"|" infra/variables.sh
-          cat infra/variables.sh
-
-      - name: Run infra script
-        run: |
-          ./infra/infra.sh
+          echo "✅ Infrastructure deployed successfully"
+          az vm list -o table

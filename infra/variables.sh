@@ -1,20 +1,33 @@
-#!/usr/bin/env bash
-# Edit these for your environment (or pass env vars)
-export AZ_SUBSCRIPTION_ID=""           # e.g. xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-export AZ_LOCATION="eastus"           # change to your preferred region
-export RG_NAME="rg-blizzy-static"     # Resource Group
-export VNET_NAME="vnet-blizzy"
-export VNET_PREFIX="10.0.0.0/16"
-export SUBNET_NAME="snet-web"
-export SUBNET_PREFIX="10.0.1.0/24"
-export NSG_NAME="nsg-web"
-export PUBLIC_IP_NAME="pip-blizzy"
-export NIC_NAME="nic-blizzy"
-export VM_NAME="vm-blizzy-web"
-export VM_SIZE="Standard_B1s"
-export VM_IMAGE="UbuntuLTS"
-export ADMIN_USERNAME="azureuser"
-# For SSH access: path to public key file
-export SSH_KEY_PATH="$HOME/.ssh/id_rsa.pub"
-# location to bundle site for upload (auto-generated)
-export SITE_ZIP="site_bundle.zip"
+#!/bin/bash
+# ======================================================
+# Azure Variables Loader (works for both local & CI/CD)
+# ======================================================
+
+# Load environment variables from .env
+if [ -f "../.env" ]; then
+  echo "📦 Loading environment variables from .env..."
+  set -a
+  # shellcheck disable=SC1091
+  source ../.env
+  set +a
+else
+  echo "⚙️ No .env file found. Please create one."
+  exit 1
+fi
+
+# Validate required variables safely (even with 'set -u')
+REQUIRED_VARS=("AZ_SUBSCRIPTION_ID" "AZ_LOCATION" "RESOURCE_GROUP")
+
+for var in "${REQUIRED_VARS[@]}"; do
+  # Use indirect expansion safely under 'set -u'
+  if [ -z "${!var-}" ]; then
+    echo "❌ ERROR: $var not set. Please export it or define it in .env"
+    exit 1
+  fi
+done
+
+# Show summary (for visibility)
+echo "✅ Variables loaded successfully:"
+echo "Subscription: ${AZ_SUBSCRIPTION_ID}"
+echo "Region: ${AZ_LOCATION}"
+echo "Resource Group: ${RESOURCE_GROUP}"
