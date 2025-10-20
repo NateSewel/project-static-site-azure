@@ -12,7 +12,7 @@ runcmd:
   # Clone the repo directly
   - |
     echo "Cloning website repo..."
-    git clone --depth 1 -b main https://github.com/NateSewel/project-static-site-azure.git /var/www/html || true
+    git clone --depth 1 -b main https://github.com/NateSewel/project-static-site-azure.git /var/www/html
     # Optional: remove .git folder
     rm -rf /var/www/html/.git
 
