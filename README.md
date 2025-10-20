@@ -261,15 +261,13 @@ Tools and Technologies Used
 
 🧩 Challenges & Solutions
 
-| Challenge                                   | Solution                                                |
-| ------------------------------------------- | ------------------------------------------------------- |
-| Azure CLI authentication for GitHub Actions | Used `AZURE_CREDENTIALS` secret with service principal. |
+| Challenge                                   | Solution                                                               |
+| ------------------------------------------- | ---------------------------------------------------------------------- |
+| Azure CLI authentication for GitHub Actions | Used `AZURE_CREDENTIALS` secret with service principal                 |
+| NSG rule misconfiguration                   | Re-applied rule allowing inbound port 80                               |
+| File permissions on NGINX root directory    | Updated ownership with `sudo chown -R www-data:www-data /var/www/html` |
+| Pipeline timing errors                      | Added step delays and proper dependencies in workflow                  |
 
-| NSG rule misconfiguration. | Re-applied rule allowing inbound port 80.
-
-| File permissions on NGINX root directory. | Updated ownership with `sudo chown -R www-data:www-data /var/www/html`
-
-| Pipeline timing errors | Added step delays and proper dependencies in workflow.
 
 🧾 Deliverables
 
