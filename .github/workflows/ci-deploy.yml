@@ -25,7 +25,6 @@ jobs:
       VM_SIZE: Standard_B1s
       VM_IMAGE: UbuntuLTS
       ADMIN_USERNAME: azureuser
-      SSH_KEY_PATH: ~/.ssh/id_rsa.pub
 
     steps:
       - name: Checkout Repository
@@ -43,10 +42,12 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -q -N ""
-          echo "SSH key generated for GitHub Actions CI."
+          cat ~/.ssh/id_rsa.pub
 
       - name: Run infrastructure setup
-        run: bash infra/infra.sh
+        run: |
+          export SSH_KEY_PATH="${HOME}/.ssh/id_rsa.pub"
+          bash infra/infra.sh
 
       - name: Verify deployment
         run: |
