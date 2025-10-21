@@ -47,6 +47,10 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -q -N ""
           echo "SSH key generated for GitHub Actions CI."
+        shell: bash
+
+      - name: Set SSH_KEY_PATH
+        run: echo "SSH_KEY_PATH=$HOME/.ssh/id_rsa.pub" >> $GITHUB_ENV
 
       - name: Run infrastructure setup
         run: bash infra/infra.sh

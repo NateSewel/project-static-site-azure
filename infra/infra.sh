@@ -26,13 +26,7 @@ for var in "${REQUIRED_VARS[@]}"; do
   fi
 done
 
-# -------------------------------
-# Check SSH key exists
-# -------------------------------
-if [ ! -f "${SSH_KEY_PATH}" ]; then
-  echo "❌ SSH key not found at ${SSH_KEY_PATH}. Create one with 'ssh-keygen'."
-  exit 2
-fi
+echo "🔑 Using SSH key at ${SSH_KEY_PATH}"
 
 # -------------------------------
 # Azure Deployment Steps
