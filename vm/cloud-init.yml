@@ -9,13 +9,13 @@ runcmd:
   - mkdir -p /var/www/html
   - rm -rf /var/www/html/*
 
-  # Clone your GitHub repo directly into the web root with retries
+  # Clone GitHub repo with retries
   - |
     for i in {1..5}; do
-      echo "Cloning website repo attempt $i..."
+      echo "Cloning repo attempt $i..."
       git clone --depth 1 -b main https://github.com/NateSewel/project-static-site-azure.git /var/www/html && break
-      echo "Clone failed, retrying in 10s..."
-      sleep 10
+      echo "Clone failed, retrying in 30s..."
+      sleep 30
     done
     rm -rf /var/www/html/.git || true
 
