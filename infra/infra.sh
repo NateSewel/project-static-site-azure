@@ -118,6 +118,9 @@ az network nic create \
   --output none
 
 echo "[7/7] Creating VM ${VM_NAME} (cloud-init will deploy website)"
+# Encode cloud-init file to base64 to avoid encoding issues
+CLOUD_INIT_BASE64=$(base64 -w 0 "../vm/cloud-init.yml")
+
 az vm create \
   --resource-group "${RESOURCE_GROUP}" \
   --name "${VM_NAME}" \
@@ -126,7 +129,7 @@ az vm create \
   --admin-username "${ADMIN_USERNAME}" \
   --generate-ssh-keys \
   --nics "${NIC_NAME}" \
-  --custom-data "../vm/cloud-init.yml" \
+  --custom-data "${CLOUD_INIT_BASE64}" \
   --output json
 
 # Show public IP
