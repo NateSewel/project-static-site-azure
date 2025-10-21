@@ -124,7 +124,7 @@ az vm create \
   --size "${VM_SIZE}" \
   --image "${VM_IMAGE}" \
   --admin-username "${ADMIN_USERNAME}" \
-  --ssh-key-values "${SSH_KEY_PATH}" \
+  --generate-ssh-keys \
   --nics "${NIC_NAME}" \
   --custom-data "../vm/cloud-init.yml" \
   --output json
