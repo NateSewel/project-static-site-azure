@@ -48,12 +48,61 @@ az network vnet create \
   --output none
 
 echo "[4/7] Creating NSG ${NSG_NAME} and rules"
-az network nsg create --resource-group "${RESOURCE_GROUP}" --name "${NSG_NAME}" --output none
-az network nsg rule create --resource-group "${RESOURCE_GROUP}" --nsg-name "${NSG_NAME}" --name "Allow-HTTP" --priority 100 --protocol Tcp --destination-port-ranges 80 --access Allow --direction Inbound --output none
-az network nsg rule create --resource-group "${RESOURCE_GROUP}" --nsg-name "${NSG_NAME}" --name "Allow-HTTPS" --priority 110 --protocol Tcp --destination-port-ranges 443 --access Allow --direction Inbound --output none
-az network nsg rule create --resource-group "${RESOURCE_GROUP}" --nsg-name "${NSG_NAME}" --name "Allow-SSH" --priority 120 --protocol Tcp --destination-port-ranges 22 --access Allow --direction Inbound --output none
-# Outbound for git clone
-az network nsg rule create --resource-group "${RESOURCE_GROUP}" --nsg-name "${NSG_NAME}" --name "Allow-Outbound-HTTPS" --priority 130 --protocol Tcp --direction Outbound --destination-address-prefixes Internet --destination-port-ranges 443 --access Allow --output none
+echo "[4/7] Creating NSG ${NSG_NAME} and ensuring rules exist"
+
+# Create NSG if it doesn't exist
+if ! az network nsg show --resource-group "${RESOURCE_GROUP}" --name "${NSG_NAME}" &>/dev/null; then
+  echo "📦 NSG ${NSG_NAME} does not exist. Creating..."
+  az network nsg create --resource-group "${RESOURCE_GROUP}" --name "${NSG_NAME}" --output none
+else
+  echo "⚙️ NSG ${NSG_NAME} already exists. Skipping creation."
+fi
+
+# Function to create or update NSG rule
+ensure_nsg_rule() {
+  local RULE_NAME=$1
+  local PRIORITY=$2
+  local DIRECTION=$3
+  local PORTS=$4
+  local ACCESS=$5
+  local PROTOCOL=${6:-Tcp}
+  local DEST_PREFIX=${7:-'*'}
+
+  if az network nsg rule show --resource-group "${RESOURCE_GROUP}" --nsg-name "${NSG_NAME}" --name "${RULE_NAME}" &>/dev/null; then
+    echo "🔄 Updating existing NSG rule: ${RULE_NAME}"
+    az network nsg rule update \
+      --resource-group "${RESOURCE_GROUP}" \
+      --nsg-name "${NSG_NAME}" \
+      --name "${RULE_NAME}" \
+      --protocol "${PROTOCOL}" \
+      --direction "${DIRECTION}" \
+      --priority "${PRIORITY}" \
+      --destination-port-ranges "${PORTS}" \
+      --access "${ACCESS}" \
+      --destination-address-prefixes "${DEST_PREFIX}" \
+      --output none
+  else
+    echo "➕ Creating NSG rule: ${RULE_NAME}"
+    az network nsg rule create \
+      --resource-group "${RESOURCE_GROUP}" \
+      --nsg-name "${NSG_NAME}" \
+      --name "${RULE_NAME}" \
+      --protocol "${PROTOCOL}" \
+      --direction "${DIRECTION}" \
+      --priority "${PRIORITY}" \
+      --destination-port-ranges "${PORTS}" \
+      --access "${ACCESS}" \
+      --destination-address-prefixes "${DEST_PREFIX}" \
+      --output none
+  fi
+}
+
+# Ensure required NSG rules
+ensure_nsg_rule "Allow-HTTP" 100 Inbound 80 Allow
+ensure_nsg_rule "Allow-HTTPS" 110 Inbound 443 Allow
+ensure_nsg_rule "Allow-SSH" 120 Inbound 22 Allow
+ensure_nsg_rule "Allow-Outbound-HTTPS" 130 Outbound 443 Allow Tcp Internet
+
 
 echo "[5/7] Creating Public IP ${PUBLIC_IP_NAME}"
 az network public-ip create --resource-group "${RESOURCE_GROUP}" --name "${PUBLIC_IP_NAME}" --allocation-method Static --sku Standard --output none
