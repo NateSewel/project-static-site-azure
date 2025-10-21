@@ -9,11 +9,15 @@ runcmd:
   - mkdir -p /var/www/html
   - rm -rf /var/www/html/*
 
-  # Clone your repository directly into the web root
+  # Clone your GitHub repo directly into the web root with retries
   - |
-    echo "Cloning website repository..."
-    git clone --depth 1 -b main https://github.com/NateSewel/project-static-site-azure.git /var/www/html || true
-    rm -rf /var/www/html/.git
+    for i in {1..5}; do
+      echo "Cloning website repo attempt $i..."
+      git clone --depth 1 -b main https://github.com/NateSewel/project-static-site-azure.git /var/www/html && break
+      echo "Clone failed, retrying in 10s..."
+      sleep 10
+    done
+    rm -rf /var/www/html/.git || true
 
   - chown -R www-data:www-data /var/www/html
   - systemctl enable nginx
